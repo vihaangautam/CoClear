@@ -1,0 +1,16 @@
+# Root
+.DS_Store
+.env
+node_modules/
+
+# Backend
+backend/venv/
+backend/__pycache__/
+backend/.pytest_cache/
+backend/alembic.ini
+backend/*.sqlite3
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: coclear_postgres
+    environment:
+      POSTGRES_USER: coclear_user
+      POSTGRES_PASSWORD: coclear_password
+      POSTGRES_DB: coclear_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: coclear_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@coclear.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
