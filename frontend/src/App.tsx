@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
 import Tenancies from './pages/Tenancies';
+import ConditionReports from './pages/ConditionReports';
 import './index.css';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/tenancies" element={<Tenancies />} />
+          <Route path="/tenancies/:id/condition-reports" element={<ConditionReports />} />
         </Route>
       </Routes>
     </BrowserRouter>

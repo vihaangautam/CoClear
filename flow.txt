@@ -1,0 +1,37 @@
+🖥️ The Backend (/backend)
+The backend is responsible for talking to the PostgreSQL database, enforcing business logic, and serving APIs to the frontend.
+
+alembic/ & alembic.ini: Alembic is your database migration tool. Whenever you change your database tables, Alembic generates a "migration script" (found in alembic/versions/) that safely applies those changes to the actual PostgreSQL database.
+app/main.py: The entry point of your server. This is where the FastAPI app is created, CORS (Cross-Origin Resource Sharing) is configured to allow the frontend to talk to it, and all the API routers are registered.
+app/database.py: Handles the connection to your PostgreSQL database using SQLAlchemy (the Python ORM).
+app/models.py: The "Source of Truth" for your database tables. This is where you define the Operator, Tenant, Tenancy, Property, and ConditionReport classes. SQLAlchemy uses these to create the actual SQL tables.
+app/schemas.py: Pydantic models. While models.py defines how data is stored in the database, schemas.py defines how data is shaped when it enters or leaves your API via JSON. It validates incoming requests and formats outgoing responses.
+app/routes/ (Directory): This is where the actual API endpoints live. Instead of dumping all endpoints into main.py, they are split logically:
+properties.py: Creating and listing PG properties and rooms.
+tenancies.py: Moving tenants in and out, changing statuses.
+condition_reports.py: Generating and signing the Check-in/Check-out checklists.
+uploads.py: The code we just added to generate Cloudflare R2 presigned URLs for secure photo uploads.
+app/ai_services.py: The skeleton file we just created. This acts as the bridge between your FastAPI backend and your local Ollama instance for tasks like parsing Excel sheets or analyzing photos for damage.
+app/seed.py: A helper script you can run to inject dummy data (fake operators, properties, and tenants) into the database so you have something to look at while building the UI.
+🎨 The Frontend (/frontend)
+The frontend is what the user actually sees and clicks on. It's built with React, Vite (a lightning-fast build tool), and Tailwind CSS for styling.
+
+index.html & src/main.tsx: The entry point of the React application. Vite loads index.html, which runs main.tsx, which mounts the React app to the screen.
+src/App.tsx: The routing engine. It uses react-router-dom to dictate which page component should be shown based on the URL (e.g., /dashboard shows the Dashboard, /tenancies shows the Tenancies table).
+src/api.ts: A centralized helper file. Instead of writing raw fetch() calls in every component, this file exports clean fetchApi, postApi, and putApi wrappers. If your backend URL changes, you only have to update it here.
+src/components/ (Directory): Contains reusable UI pieces. Currently, it holds Layout.tsx, which provides the persistent sidebar navigation and top header across all pages.
+src/pages/ (Directory): The actual views for the application:
+Dashboard.tsx: High-level stats (occupancy, revenue).
+Properties.tsx: A list of the operator's PG buildings.
+Tenancies.tsx: The main data table showing who is currently renting a bed.
+ConditionReports.tsx: The interactive Check-in/Check-out checklist we just built.
+Note: Each of these usually has a companion .css file for custom styling.
+How Data Flows (Example: Viewing Tenancies)
+You click "Tenancies" in the React sidebar (Layout.tsx).
+React Router (App.tsx) sees the URL change to /tenancies and renders Tenancies.tsx.
+Tenancies.tsx uses fetchApi('/tenancies') to ask the backend for data.
+The backend's main.py routes the request to routes/tenancies.py.
+tenancies.py asks models.py/database.py to query PostgreSQL.
+The database returns the rows.
+The backend formats those rows using schemas.py and sends JSON back to the frontend.
+React receives the JSON and updates the table on your screen.

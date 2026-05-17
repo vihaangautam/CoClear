@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Users, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, ChevronRight, FileCheck } from 'lucide-react';
 import { fetchApi } from '../api';
 import './Pages.css';
 
@@ -44,6 +45,7 @@ export default function Tenancies() {
               <th>Rent</th>
               <th>Deposit</th>
               <th>Move-in</th>
+              <th>Reports</th>
               <th></th>
             </tr>
           </thead>
@@ -70,6 +72,11 @@ export default function Tenancies() {
                   <td>{fmt(t.rent_amount)}</td>
                   <td>{fmt(t.deposit_amount)}</td>
                   <td className="mono-text">{t.move_in_date ? new Date(t.move_in_date).toLocaleDateString('en-IN') : '—'}</td>
+                  <td>
+                    <Link to={`/tenancies/${t.id}/condition-reports`} className="row-action" title="Condition Reports">
+                      <FileCheck size={18} />
+                    </Link>
+                  </td>
                   <td><button className="row-action"><ChevronRight size={16} /></button></td>
                 </tr>
               );
