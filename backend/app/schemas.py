@@ -24,6 +24,19 @@ class ConditionRatingEnum(str, Enum):
     missing = "missing"
 
 
+class TicketStatusEnum(str, Enum):
+    open = "open"
+    in_progress = "in_progress"
+    resolved = "resolved"
+
+
+class TicketPriorityEnum(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+    urgent = "urgent"
+
+
 class PaymentMethodEnum(str, Enum):
     upi = "upi"
     cash = "cash"
@@ -214,6 +227,31 @@ class ConditionReportOut(BaseModel):
     is_locked: bool
     created_at: datetime
     items: List[ConditionItemOut] = []
+
+    class Config:
+        from_attributes = True
+
+
+# ─── Tickets ─────────────────────────────────────────────────────
+
+class TicketCreate(BaseModel):
+    title: str
+    description: str
+    priority: Optional[TicketPriorityEnum] = TicketPriorityEnum.medium
+
+class TicketUpdate(BaseModel):
+    status: Optional[TicketStatusEnum] = None
+    priority: Optional[TicketPriorityEnum] = None
+
+class TicketOut(BaseModel):
+    id: UUID
+    tenancy_id: UUID
+    title: str
+    description: str
+    status: TicketStatusEnum
+    priority: TicketPriorityEnum
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

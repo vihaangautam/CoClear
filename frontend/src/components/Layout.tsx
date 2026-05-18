@@ -1,11 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Building2, Users, Settings, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, Settings, HelpCircle, Wrench } from 'lucide-react';
 import './Layout.css';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/properties', label: 'Properties', icon: Building2 },
   { to: '/tenancies', label: 'Tenancies', icon: Users },
+  { to: '/tickets', label: 'Tickets', icon: Wrench },
 ];
 
 export default function Layout() {

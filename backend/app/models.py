@@ -30,6 +30,19 @@ class ConditionRating(str, enum.Enum):
     missing = "missing"
 
 
+class TicketStatus(str, enum.Enum):
+    open = "open"
+    in_progress = "in_progress"
+    resolved = "resolved"
+
+
+class TicketPriority(str, enum.Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+    urgent = "urgent"
+
+
 # ─── Core Entity Models ────────────────────────────────────────────
 
 class Operator(Base):
@@ -188,3 +201,21 @@ class TenancyStatusLog(Base):
     changed_by = Column(UUID(as_uuid=True))
     changed_at = Column(DateTime(timezone=True), server_default=func.now())
     note = Column(Text)
+
+
+# ─── Tickets ──────────────────────────────────────────────────────
+
+class Ticket(Base):
+    __tablename__ = "tickets"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenancy_id = Column(UUID(as_uuid=True), ForeignKey("tenancies.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    status = Column(SQLEnum(TicketStatus), nullable=False, default=TicketStatus.open)
+    priority = Column(SQLEnum(TicketPriority), nullable=False, default=TicketPriority.medium)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    tenancy = relationship("Tenancy")
+

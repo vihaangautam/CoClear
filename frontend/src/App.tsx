@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
 import Tenancies from './pages/Tenancies';
 import ConditionReports from './pages/ConditionReports';
+import Tickets from './pages/Tickets';
 import './index.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="/properties" element={<Properties />} />
           <Route path="/tenancies" element={<Tenancies />} />
           <Route path="/tenancies/:id/condition-reports" element={<ConditionReports />} />
+          <Route path="/tickets" element={<Tickets />} />
         </Route>
       </Routes>
     </BrowserRouter>
