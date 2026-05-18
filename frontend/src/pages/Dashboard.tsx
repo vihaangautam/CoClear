@@ -68,7 +68,7 @@ export default function Dashboard() {
       <div className="stat-grid">
         <div className="stat-card">
           <div className="stat-header">
-            <span className="stat-label">Total Revenue (MTD)</span>
+            <span className="stat-label">Rent This Month</span>
             <Building2 size={16} className="stat-icon" />
           </div>
           <div className="stat-value">{stats ? revenueFormatted : '...'}</div>
@@ -77,7 +77,7 @@ export default function Dashboard() {
 
         <div className="stat-card">
           <div className="stat-header">
-            <span className="stat-label">System Occupancy</span>
+            <span className="stat-label">Beds Filled</span>
             <Building2 size={16} className="stat-icon" />
           </div>
           <div className="stat-value">{stats?.occupancy_percent ?? '...'}%</div>
@@ -86,18 +86,18 @@ export default function Dashboard() {
 
         <div className="stat-card warning">
           <div className="stat-header">
-            <span className="stat-label">Move-Out Pipeline</span>
+            <span className="stat-label">Leaving Soon</span>
             <AlertTriangle size={16} className="stat-icon warning" />
           </div>
           <div className="stat-value accent-orange">{stats?.tenancies_in_notice ?? 0}</div>
-          <div className="stat-detail">Tenancies in notice period</div>
+          <div className="stat-detail">People leaving</div>
         </div>
       </div>
 
       {/* ─── Occupancy Grid ─── */}
       <div className="card occupancy-card">
         <div className="card-header">
-          <h2 className="card-title">Micro-Occupancy Grid</h2>
+          <h2 className="card-title">Who's in which bed</h2>
           <div className="legend">
             <span className="legend-item"><span className="dot green" />Active</span>
             <span className="legend-item"><span className="dot orange" />Notice</span>

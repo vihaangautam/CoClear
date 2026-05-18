@@ -1,0 +1,206 @@
+.tenant-home {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.greeting-section h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.greeting-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Info Cards */
+.info-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--text-primary);
+}
+
+.info-card-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Room Card */
+.room-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.status-pill.active {
+  background: var(--accent-green-bg);
+  color: var(--accent-green);
+}
+
+.status-pill.notice_period {
+  background: var(--accent-orange-bg);
+  color: var(--accent-orange);
+}
+
+.status-pill.inquiry,
+.status-pill.confirmed {
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+}
+
+/* Money Grid */
+.money-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.money-value {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Quick Actions */
+.quick-actions h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  text-align: left;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.action-card:hover {
+  border-color: #6366f1;
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
+}
+
+.action-card svg {
+  color: #6366f1;
+}
+
+.action-card > span:first-of-type {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.action-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Payments List */
+.payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light, #f3f4f6);
+}
+
+.payment-row:last-child {
+  border-bottom: none;
+}
+
+.payment-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-amount {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.payment-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.payment-method {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  background: var(--bg-page);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* Empty State */
+.tenant-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.tenant-empty h3 {
+  color: var(--text-primary);
+}

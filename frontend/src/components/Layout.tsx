@@ -38,7 +38,7 @@ export default function Layout() {
             <div className="user-avatar">RK</div>
             <div className="user-info">
               <span className="user-name">Ramesh Kumar</span>
-              <span className="user-id">OP-0001</span>
+              <span className="user-id">Owner</span>
             </div>
           </div>
         </div>
