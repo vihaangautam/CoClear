@@ -14,6 +14,7 @@ from app.models import (
     TenancyStatus, Payment, PaymentMethod,
     ConditionReport, ConditionItem, ConditionRating,
 )
+from app.auth import get_password_hash
 
 def seed():
     db = SessionLocal()
@@ -27,7 +28,12 @@ def seed():
     print("[SEED] Seeding database...")
 
     # ─── Operator ──────────────────────────────────────────────
-    op = Operator(name="Ramesh Kumar", email="ramesh@pgpal.in", phone="+919876543210")
+    op = Operator(
+        name="Ramesh Kumar",
+        email="ramesh@pgpal.in",
+        phone="+919876543210",
+        password_hash=get_password_hash("password123"),
+    )
     db.add(op)
     db.flush()
 
@@ -66,17 +72,18 @@ def seed():
             beds_p2.append(bed)
 
     # ─── Tenants ──────────────────────────────────────────────
+    default_password = get_password_hash("password123")
     tenants = [
-        Tenant(name="Priya Sharma", email="priya@example.com", phone="+919111111111", aadhaar_last4="1234"),
-        Tenant(name="Amit Singh", email="amit@example.com", phone="+919222222222", aadhaar_last4="5678"),
-        Tenant(name="Neha Gupta", email="neha@example.com", phone="+919333333333", aadhaar_last4="9012"),
-        Tenant(name="Rahul Verma", email="rahul@example.com", phone="+919444444444", aadhaar_last4="3456"),
-        Tenant(name="Ananya Reddy", email="ananya@example.com", phone="+919555555555", aadhaar_last4="7890"),
-        Tenant(name="Vikram Patel", email="vikram@example.com", phone="+919666666666", aadhaar_last4="2345"),
-        Tenant(name="Deepa Nair", email="deepa@example.com", phone="+919777777777", aadhaar_last4="6789"),
-        Tenant(name="Arjun Mehta", email="arjun@example.com", phone="+919888888888", aadhaar_last4="0123"),
-        Tenant(name="Kavita Joshi", email="kavita@example.com", phone="+919999999999"),
-        Tenant(name="Ravi Shankar", email="ravi@example.com", phone="+919101010101"),
+        Tenant(name="Priya Sharma", email="priya@example.com", phone="+919111111111", aadhaar_last4="1234", password_hash=default_password),
+        Tenant(name="Amit Singh", email="amit@example.com", phone="+919222222222", aadhaar_last4="5678", password_hash=default_password),
+        Tenant(name="Neha Gupta", email="neha@example.com", phone="+919333333333", aadhaar_last4="9012", password_hash=default_password),
+        Tenant(name="Rahul Verma", email="rahul@example.com", phone="+919444444444", aadhaar_last4="3456", password_hash=default_password),
+        Tenant(name="Ananya Reddy", email="ananya@example.com", phone="+919555555555", aadhaar_last4="7890", password_hash=default_password),
+        Tenant(name="Vikram Patel", email="vikram@example.com", phone="+919666666666", aadhaar_last4="2345", password_hash=default_password),
+        Tenant(name="Deepa Nair", email="deepa@example.com", phone="+919777777777", aadhaar_last4="6789", password_hash=default_password),
+        Tenant(name="Arjun Mehta", email="arjun@example.com", phone="+919888888888", aadhaar_last4="0123", password_hash=default_password),
+        Tenant(name="Kavita Joshi", email="kavita@example.com", phone="+919999999999", password_hash=default_password),
+        Tenant(name="Ravi Shankar", email="ravi@example.com", phone="+919101010101", password_hash=default_password),
     ]
     db.add_all(tenants)
     db.flush()

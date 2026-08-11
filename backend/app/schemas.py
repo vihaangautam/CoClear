@@ -4,6 +4,7 @@ from uuid import UUID
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 # ─── Enums ────────────────────────────────────────────────────────
@@ -281,3 +282,12 @@ class PropertyOccupancy(BaseModel):
     address: str
     occupancy_percent: float
     beds: List[OccupancyBed]
+
+
+# ─── Auth ──────────────────────────────────────────────────────────
+
+
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"

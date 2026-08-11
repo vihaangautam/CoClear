@@ -1,35 +1,30 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
-from ..database import SessionLocal
 from .. import models, schemas
+from ..auth import get_current_operator, get_db
 
 router = APIRouter()
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 # ─── Properties ──────────────────────────────────────────────────
 
 @router.get("/properties", response_model=list[schemas.PropertyOut])
-def list_properties(db: Session = Depends(get_db)):
-    return db.query(models.Property).all()
+def list_properties(
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    return db.query(models.Property).filter(models.Property.operator_id == current_operator.id).all()
 
 
 @router.post("/properties", response_model=schemas.PropertyOut, status_code=201)
-def create_property(data: schemas.PropertyCreate, db: Session = Depends(get_db)):
-    # For MVP, use first operator
-    operator = db.query(models.Operator).first()
-    if not operator:
-        raise HTTPException(status_code=400, detail="No operator found. Seed the database first.")
+def create_property(
+    data: schemas.PropertyCreate,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
     prop = models.Property(
-        operator_id=operator.id,
+        operator_id=current_operator.id,
         name=data.name,
         address=data.address,
         type=data.type,
@@ -41,8 +36,15 @@ def create_property(data: schemas.PropertyCreate, db: Session = Depends(get_db))
 
 
 @router.get("/properties/{property_id}", response_model=schemas.PropertyOut)
-def get_property(property_id: UUID, db: Session = Depends(get_db)):
-    prop = db.query(models.Property).filter(models.Property.id == property_id).first()
+def get_property(
+    property_id: UUID,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    prop = db.query(models.Property).filter(
+        models.Property.id == property_id,
+        models.Property.operator_id == current_operator.id,
+    ).first()
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found")
     return prop
@@ -51,12 +53,33 @@ def get_property(property_id: UUID, db: Session = Depends(get_db)):
 # ─── Rooms ───────────────────────────────────────────────────────
 
 @router.get("/properties/{property_id}/rooms", response_model=list[schemas.RoomOut])
-def list_rooms(property_id: UUID, db: Session = Depends(get_db)):
+def list_rooms(
+    property_id: UUID,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    prop = db.query(models.Property).filter(
+        models.Property.id == property_id,
+        models.Property.operator_id == current_operator.id,
+    ).first()
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
     return db.query(models.Room).filter(models.Room.property_id == property_id).all()
 
 
 @router.post("/properties/{property_id}/rooms", response_model=schemas.RoomOut, status_code=201)
-def create_room(property_id: UUID, data: schemas.RoomCreate, db: Session = Depends(get_db)):
+def create_room(
+    property_id: UUID,
+    data: schemas.RoomCreate,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    prop = db.query(models.Property).filter(
+        models.Property.id == property_id,
+        models.Property.operator_id == current_operator.id,
+    ).first()
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
     room = models.Room(
         property_id=property_id,
         room_number=data.room_number,
@@ -79,7 +102,18 @@ def create_room(property_id: UUID, data: schemas.RoomCreate, db: Session = Depen
 # ─── Beds ────────────────────────────────────────────────────────
 
 @router.post("/rooms/{room_id}/beds", response_model=schemas.BedOut, status_code=201)
-def create_bed(room_id: UUID, data: schemas.BedCreate, db: Session = Depends(get_db)):
+def create_bed(
+    room_id: UUID,
+    data: schemas.BedCreate,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    room = db.query(models.Room).join(models.Property).filter(
+        models.Room.id == room_id,
+        models.Property.operator_id == current_operator.id,
+    ).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
     bed = models.Bed(room_id=room_id, label=data.label)
     db.add(bed)
     db.commit()
@@ -90,12 +124,21 @@ def create_bed(room_id: UUID, data: schemas.BedCreate, db: Session = Depends(get
 # ─── Tenants ─────────────────────────────────────────────────────
 
 @router.get("/tenants", response_model=list[schemas.TenantOut])
-def list_tenants(db: Session = Depends(get_db)):
-    return db.query(models.Tenant).all()
+def list_tenants(
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    return db.query(models.Tenant).join(models.Tenancy).filter(
+        models.Tenancy.operator_id == current_operator.id
+    ).distinct().all()
 
 
 @router.post("/tenants", response_model=schemas.TenantOut, status_code=201)
-def create_tenant(data: schemas.TenantCreate, db: Session = Depends(get_db)):
+def create_tenant(
+    data: schemas.TenantCreate,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
     tenant = models.Tenant(
         name=data.name,
         email=data.email,

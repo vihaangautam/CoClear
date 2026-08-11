@@ -3,25 +3,25 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func as sqlfunc
 from decimal import Decimal
 from datetime import date
-from ..database import SessionLocal
 from .. import models, schemas
+from ..auth import get_current_operator, get_db
 
 router = APIRouter()
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @router.get("/dashboard/stats", response_model=schemas.DashboardStats)
-def get_dashboard_stats(db: Session = Depends(get_db)):
-    total_properties = db.query(models.Property).count()
-    total_beds = db.query(models.Bed).count()
+def get_dashboard_stats(
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    total_properties = db.query(models.Property).filter(
+        models.Property.operator_id == current_operator.id
+    ).count()
+    total_beds = db.query(models.Bed).join(models.Room).join(models.Property).filter(
+        models.Property.operator_id == current_operator.id
+    ).count()
     active_tenancies = db.query(models.Tenancy).filter(
+        models.Tenancy.operator_id == current_operator.id,
         models.Tenancy.status == models.TenancyStatus.active
     ).count()
     occupancy = (active_tenancies / total_beds * 100) if total_beds > 0 else 0
@@ -29,11 +29,15 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     # Revenue this month
     today = date.today()
     first_of_month = today.replace(day=1)
-    revenue = db.query(sqlfunc.coalesce(sqlfunc.sum(models.Payment.amount), 0)).filter(
+    revenue = db.query(sqlfunc.coalesce(sqlfunc.sum(models.Payment.amount), 0)).join(
+        models.Tenancy
+    ).filter(
+        models.Tenancy.operator_id == current_operator.id,
         models.Payment.payment_date >= first_of_month
     ).scalar()
 
     notice_count = db.query(models.Tenancy).filter(
+        models.Tenancy.operator_id == current_operator.id,
         models.Tenancy.status == models.TenancyStatus.notice_period
     ).count()
 
@@ -48,8 +52,13 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
 
 
 @router.get("/dashboard/occupancy", response_model=list[schemas.PropertyOccupancy])
-def get_occupancy_grid(db: Session = Depends(get_db)):
-    properties = db.query(models.Property).all()
+def get_occupancy_grid(
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    properties = db.query(models.Property).filter(
+        models.Property.operator_id == current_operator.id
+    ).all()
     result = []
 
     for prop in properties:

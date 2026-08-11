@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from uuid import UUID
-from ..database import SessionLocal
 from .. import models, schemas
+from ..auth import get_current_operator, get_db
 
 router = APIRouter()
 
@@ -15,32 +15,37 @@ VALID_TRANSITIONS = {
 }
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @router.get("/tenancies", response_model=list[schemas.TenancyOut])
-def list_tenancies(db: Session = Depends(get_db)):
+def list_tenancies(
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
     return (
         db.query(models.Tenancy)
         .options(joinedload(models.Tenancy.tenant), joinedload(models.Tenancy.bed))
+        .filter(models.Tenancy.operator_id == current_operator.id)
         .all()
     )
 
 
 @router.post("/tenancies", response_model=schemas.TenancyOut, status_code=201)
-def create_tenancy(data: schemas.TenancyCreate, db: Session = Depends(get_db)):
-    operator = db.query(models.Operator).first()
-    if not operator:
-        raise HTTPException(status_code=400, detail="No operator found")
+def create_tenancy(
+    data: schemas.TenancyCreate,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    # Verify bed belongs to operator's property
+    bed = db.query(models.Bed).join(models.Room).join(models.Property).filter(
+        models.Bed.id == data.bed_id,
+        models.Property.operator_id == current_operator.id,
+    ).first()
+    if not bed:
+        raise HTTPException(status_code=404, detail="Bed not found")
+
     tenancy = models.Tenancy(
         bed_id=data.bed_id,
         tenant_id=data.tenant_id,
-        operator_id=operator.id,
+        operator_id=current_operator.id,
         status=models.TenancyStatus.inquiry,
         rent_amount=data.rent_amount,
         rent_due_day=data.rent_due_day,
@@ -54,11 +59,18 @@ def create_tenancy(data: schemas.TenancyCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/tenancies/{tenancy_id}", response_model=schemas.TenancyOut)
-def get_tenancy(tenancy_id: UUID, db: Session = Depends(get_db)):
+def get_tenancy(
+    tenancy_id: UUID,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
     tenancy = (
         db.query(models.Tenancy)
         .options(joinedload(models.Tenancy.tenant), joinedload(models.Tenancy.bed))
-        .filter(models.Tenancy.id == tenancy_id)
+        .filter(
+            models.Tenancy.id == tenancy_id,
+            models.Tenancy.operator_id == current_operator.id,
+        )
         .first()
     )
     if not tenancy:
@@ -67,8 +79,16 @@ def get_tenancy(tenancy_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.patch("/tenancies/{tenancy_id}/transition", response_model=schemas.TenancyOut)
-def transition_tenancy(tenancy_id: UUID, body: schemas.TenancyTransition, db: Session = Depends(get_db)):
-    tenancy = db.query(models.Tenancy).filter(models.Tenancy.id == tenancy_id).first()
+def transition_tenancy(
+    tenancy_id: UUID,
+    body: schemas.TenancyTransition,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    tenancy = db.query(models.Tenancy).filter(
+        models.Tenancy.id == tenancy_id,
+        models.Tenancy.operator_id == current_operator.id,
+    ).first()
     if not tenancy:
         raise HTTPException(status_code=404, detail="Tenancy not found")
 

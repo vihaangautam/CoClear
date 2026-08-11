@@ -2,23 +2,23 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from uuid import UUID
 from datetime import datetime, timezone
-from ..database import SessionLocal
 from .. import models, schemas
+from ..auth import get_current_operator, get_current_tenant, get_db
 
 router = APIRouter()
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @router.post("/tenancies/{tenancy_id}/condition-report", response_model=schemas.ConditionReportOut, status_code=201)
-def create_condition_report(tenancy_id: UUID, body: schemas.ConditionReportCreate, db: Session = Depends(get_db)):
-    tenancy = db.query(models.Tenancy).filter(models.Tenancy.id == tenancy_id).first()
+def create_condition_report(
+    tenancy_id: UUID,
+    body: schemas.ConditionReportCreate,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    tenancy = db.query(models.Tenancy).filter(
+        models.Tenancy.id == tenancy_id,
+        models.Tenancy.operator_id == current_operator.id,
+    ).first()
     if not tenancy:
         raise HTTPException(status_code=404, detail="Tenancy not found")
 
@@ -52,7 +52,19 @@ def create_condition_report(tenancy_id: UUID, body: schemas.ConditionReportCreat
 
 
 @router.get("/tenancies/{tenancy_id}/condition-report/{report_type}", response_model=schemas.ConditionReportOut)
-def get_condition_report(tenancy_id: UUID, report_type: str, db: Session = Depends(get_db)):
+def get_condition_report(
+    tenancy_id: UUID,
+    report_type: str,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    tenancy = db.query(models.Tenancy).filter(
+        models.Tenancy.id == tenancy_id,
+        models.Tenancy.operator_id == current_operator.id,
+    ).first()
+    if not tenancy:
+        raise HTTPException(status_code=404, detail="Tenancy not found")
+
     report = (
         db.query(models.ConditionReport)
         .options(joinedload(models.ConditionReport.items))
@@ -68,8 +80,17 @@ def get_condition_report(tenancy_id: UUID, report_type: str, db: Session = Depen
 
 
 @router.put("/condition-reports/{report_id}/items/{item_id}", response_model=schemas.ConditionItemOut)
-def update_condition_item(report_id: UUID, item_id: UUID, body: schemas.ConditionItemCreate, db: Session = Depends(get_db)):
-    report = db.query(models.ConditionReport).filter(models.ConditionReport.id == report_id).first()
+def update_condition_item(
+    report_id: UUID,
+    item_id: UUID,
+    body: schemas.ConditionItemCreate,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
+    report = db.query(models.ConditionReport).join(models.Tenancy).filter(
+        models.ConditionReport.id == report_id,
+        models.Tenancy.operator_id == current_operator.id,
+    ).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     if report.is_locked:
@@ -92,12 +113,21 @@ def update_condition_item(report_id: UUID, item_id: UUID, body: schemas.Conditio
 
 
 @router.post("/condition-reports/{report_id}/sign", response_model=schemas.ConditionReportOut)
-def sign_report(report_id: UUID, role: str = "operator", db: Session = Depends(get_db)):
+def sign_report(
+    report_id: UUID,
+    role: str = "operator",
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
     """Sign the report. role = 'operator' or 'tenant'. Locks when both sign."""
     report = (
         db.query(models.ConditionReport)
         .options(joinedload(models.ConditionReport.items))
-        .filter(models.ConditionReport.id == report_id)
+        .join(models.Tenancy)
+        .filter(
+            models.ConditionReport.id == report_id,
+            models.Tenancy.operator_id == current_operator.id,
+        )
         .first()
     )
     if not report:
@@ -123,8 +153,19 @@ def sign_report(report_id: UUID, role: str = "operator", db: Session = Depends(g
 
 
 @router.get("/tenancies/{tenancy_id}/condition-report/diff")
-def get_condition_diff(tenancy_id: UUID, db: Session = Depends(get_db)):
+def get_condition_diff(
+    tenancy_id: UUID,
+    db: Session = Depends(get_db),
+    current_operator: models.Operator = Depends(get_current_operator),
+):
     """Side-by-side diff of check-in vs check-out condition items."""
+    tenancy = db.query(models.Tenancy).filter(
+        models.Tenancy.id == tenancy_id,
+        models.Tenancy.operator_id == current_operator.id,
+    ).first()
+    if not tenancy:
+        raise HTTPException(status_code=404, detail="Tenancy not found")
+
     check_in = (
         db.query(models.ConditionReport)
         .options(joinedload(models.ConditionReport.items))

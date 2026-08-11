@@ -74,6 +74,22 @@
 .user-info { display: flex; flex-direction: column; }
 .user-name { font-size: 13px; font-weight: 600; }
 .user-id { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+.logout-btn {
+  margin-left: auto;
+  padding: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logout-btn:hover {
+  background: var(--accent-red-bg);
+  color: var(--accent-red);
+}
 
 /* ─── Main ─── */
 .main-content {

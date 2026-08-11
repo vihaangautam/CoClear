@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import properties, tenancies, condition_reports, payments, dashboard, uploads, tickets, tenant_portal
+from .routes import properties, tenancies, condition_reports, payments, dashboard, uploads, tickets, tenant_portal, auth
 
 app = FastAPI(
     title="PGPal API",
@@ -18,6 +18,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
 app.include_router(dashboard.router, prefix="/api/v1", tags=["Dashboard"])
 app.include_router(properties.router, prefix="/api/v1", tags=["Properties"])
 app.include_router(tenancies.router, prefix="/api/v1", tags=["Tenancies"])
